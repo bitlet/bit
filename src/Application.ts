@@ -27,7 +27,7 @@ export class Application {
 
         const server = serve({ hostname: host, port });
 
-        console.log('HTTP/WS server is running on ' + host + ':' + port);
+        console.log(`HTTP/WS server is running on ${host}:${port}`);
 
         for await (const request of server) {
             if (Webserver.acceptable(request)) {
@@ -68,7 +68,7 @@ export class Application {
                         }
                     }
                 } catch (error) {
-                    console.error('Failed to receive frame: ' + error);
+                    console.error(`Failed to receive frame: ${error}`);
 
                     if (!request.isClosed) {
                         await request.close(1000).catch(console.error);
@@ -76,7 +76,7 @@ export class Application {
                 }
             })
             .catch(async (error) => {
-                console.error('Failed to accept websocket: ' + error);
+                console.error(`Failed to accept websocket: ${error}`);
 
                 await request.respond({ status: 400 });
             });

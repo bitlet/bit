@@ -77,7 +77,7 @@ export class Routing {
             for (let [uri, route] of Object.entries(uris)) {
                 uri = prefixUri + uri;
                 uri = uri.replace(/\/$/, '');
-                uri = '^' + uri + '$';
+                uri = `^${uri}\$`;
 
                 for (const [argument, regex] of Object.entries(RouteArguments)) {
                     uri = uri.replace(argument, regex);
