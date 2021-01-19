@@ -32,8 +32,7 @@ export class Mysql implements Driver {
         try {
             return await this.connection.query(query, binds);
         } catch (error) {
-            // @todo Throw a generic error which can be catched from Database.ts
-            console.log('Mysql connection error');
+            throw new Error(error);
         }
     }
 }
