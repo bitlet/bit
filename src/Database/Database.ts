@@ -1,10 +1,23 @@
 import * as Interface from './Interfaces/mod.ts';
+import { Mysql } from './Drivers/Mysql.ts';
 
 export class Database {
     protected driver!: Interface.Driver;
     protected connection!: any;
 
-    public setDriver(driver: Interface.Driver) {
+    public parseDriver(driver: string): this {
+        switch (driver) {
+            case 'mysql':
+                this.setDriver(new Mysql());
+
+                break;
+            default:
+                throw new Error('Invalid database driver');
+        }
+
+        return this;
+    }
+    public setDriver(driver: Interface.Driver): this {
         this.driver = driver;
 
         return this;
@@ -12,7 +25,7 @@ export class Database {
 
     public async connect(connection: Interface.Connection) {
         if (!this.driver) {
-            throw new Error('Missing driver');
+            throw new Error('Missing database driver');
         }
 
         await this.driver.connect(connection);
