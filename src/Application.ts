@@ -3,6 +3,7 @@ import { Webserver, WebSocket } from '../deps.ts';
 import { Controller } from './Controllers/Interfaces/Controller.ts';
 import { Env } from './Env/Env.ts';
 import { Registry } from './Registry/Registry.ts';
+import { Response } from './Response/Response.ts';
 import { Routing } from './Routing/Routing.ts';
 
 export class Application {
@@ -39,9 +40,13 @@ export class Application {
     }
 
     private async http(request: ServerRequest) {
-        const response: string = await Routing.matchUri(request.method, request.url);
+        const response: Response = await Routing.matchUri(request.method, request.url);
 
-        request.respond({ status: 200, body: response });
+        if (response.isJson()) {
+            request.respond({ status: response.status, body: response.getAsJson() });
+        } else {
+            request.respond({ status: response.status, body: response.body });
+        }
     }
 
     private async ws(request: ServerRequest) {
@@ -54,9 +59,9 @@ export class Application {
                         if (typeof event === 'string') {
                             let input = JSON.parse(event);
 
-                            const response: string = await Routing.matchUri(input.method, input.uri);
+                            const response: Response = await Routing.matchUri(input.method, input.uri);
 
-                            await request.send(response);
+                            await request.send(response.getAsJson());
                         } else if (event instanceof Uint8Array) {
                             console.log('ws:Binary', event);
                         } else if (Webserver.isWebSocketPingEvent(event)) {

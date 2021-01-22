@@ -1,5 +1,6 @@
 import { Route } from './Route.ts';
 import { Controller } from '../Controllers/Interfaces/Controller.ts';
+import { Response } from '../Response/Response.ts';
 
 enum Method {
     GET = 'GET',
@@ -111,7 +112,10 @@ export class Routing {
     }
 
     public static async matchUri(requestMethod: string, uri: string) {
-        let response: string = '404';
+        let response: Response = new Response({
+            message: 'Route not found',
+            status: 404,
+        });
 
         for (let route in this.routes[requestMethod]) {
             const params = uri.match(new RegExp(route));
