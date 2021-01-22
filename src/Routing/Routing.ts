@@ -10,7 +10,7 @@ enum Method {
     DELETE = 'DELETE',
 }
 
-enum RouteArguments {
+enum RouteArgument {
     ':id' = '(\\w+)',
 }
 
@@ -80,7 +80,7 @@ export class Routing {
                 uri = uri.replace(/\/$/, '');
                 uri = `^${uri}\$`;
 
-                for (const [argument, regex] of Object.entries(RouteArguments)) {
+                for (const [argument, regex] of Object.entries(RouteArgument)) {
                     uri = uri.replace(argument, regex);
                 }
 
