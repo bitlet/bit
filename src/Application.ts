@@ -75,7 +75,7 @@ export class Application {
                     }
                 }
             })
-            .catch(async (error) => {
+            .catch(async (error: string) => {
                 console.error(`Failed to accept websocket: ${error}`);
 
                 await request.respond({ status: 400 });
