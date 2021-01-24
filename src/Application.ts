@@ -23,7 +23,7 @@ export class Application {
         return this;
     }
 
-    async serve() {
+    public async serve() {
         const { host, port } = Registry.get(Env).get('Server');
 
         const server = serve({ hostname: host, port });
