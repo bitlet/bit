@@ -1,18 +1,8 @@
 export class Config {
-    public static instance: Config;
-
-    protected configs: { [key: string]: any } = {};
-
-    constructor() {
-        if (Config.instance) {
-            throw new Error('Config is already initiated');
-        }
-
-        Config.instance = this;
-    }
+    protected collection: { [key: string]: any } = {};
 
     public add(key: string, value: { [key: string]: any }): this {
-        this.configs[key] = { ...this.configs[key], ...value };
+        this.collection[key] = { ...this.collection[key], ...value };
 
         return this;
     }
@@ -27,9 +17,9 @@ export class Config {
 
     public get(key: string = ''): any {
         if (key) {
-            return this.configs[key];
+            return this.collection[key];
         }
 
-        return this.configs;
+        return this.collection;
     }
 }
