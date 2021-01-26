@@ -7,6 +7,8 @@ import { Response } from './Response/Response.ts';
 import { Routing } from './Routing/Routing.ts';
 
 export class Application {
+    protected host = 'localhost';
+    protected port = 80;
     protected controllerCollection!: Array<Controller>;
 
     public controllers(controllers: Array<Controller>): this {
@@ -23,8 +25,15 @@ export class Application {
         return this;
     }
 
-    public async serve() {
-        const { host, port } = Registry.get(Env).get('Server');
+    public async serve(options: { [key: string]: any } = {}) {
+        let host = this.host;
+        let port = this.port;
+
+        if (options) {
+            ({ host, port } = options);
+        } else {
+            ({ host, port } = Registry.get(Env).get('Server'));
+        }
 
         const server = serve({ hostname: host, port });
 
