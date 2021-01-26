@@ -8,13 +8,21 @@ export class Response {
     body: any = {};
     format: string;
 
-    constructor(response: { message?: string; status?: number; body?: any; format?: string }) {
-        const { message, status, body, format } = response;
-
-        this.message = message || '';
-        this.status = status || 200;
-        this.body = body || {};
-        this.format = format || Format.Json;
+    constructor({
+        message = '',
+        status = 200,
+        body = {},
+        format = Format.Json,
+    }: {
+        message?: string;
+        status?: number;
+        body?: any;
+        format?: string;
+    }) {
+        this.message = message;
+        this.status = status;
+        this.body = body;
+        this.format = format;
     }
 
     public isJson() {
