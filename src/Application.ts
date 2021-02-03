@@ -1,14 +1,14 @@
-import { serve, ServerRequest } from '../deps.ts';
-import { Webserver, WebSocket } from '../deps.ts';
-import { Controller } from './Controllers/Interfaces/Controller.ts';
+import { Controller } from './Controller/Controller.ts';
 import { Env } from './Env/Env.ts';
 import { Registry } from './Registry/Registry.ts';
 import { Response } from './Response/Response.ts';
 import { Routing } from './Routing/Routing.ts';
+import { Webserver, WebSocket } from '../deps.ts';
+import { serve, ServerRequest } from '../deps.ts';
+
+new Registry().register(new Routing());
 
 export class Application {
-    protected host = 'localhost';
-    protected port = 80;
     protected controllerCollection!: Array<Controller>;
 
     public controllers(controllers: Array<Controller>): this {
@@ -26,14 +26,10 @@ export class Application {
     }
 
     public async serve(options: { [key: string]: any } = {}) {
-        let host = this.host;
-        let port = this.port;
+        const env = Registry.get(Env).get('Server');
 
-        if (options) {
-            ({ host, port } = options);
-        } else {
-            ({ host, port } = Registry.get(Env).get('Server'));
-        }
+        const host = options.host || env.host || 'localhost';
+        const port = options.port || env.port || 80;
 
         const server = serve({ hostname: host, port });
 
@@ -49,7 +45,8 @@ export class Application {
     }
 
     private async http(request: ServerRequest) {
-        const response: Response = await Routing.matchUri(request.method, request.url);
+        console.log(Registry.get(Routing).routes);
+        const response: Response = await Registry.get(Routing).matchUri(request.method, request.url);
 
         if (response.isJson()) {
             request.respond({ status: response.status, body: response.getAsJson() });
@@ -68,7 +65,7 @@ export class Application {
                         if (typeof event === 'string') {
                             let input = JSON.parse(event);
 
-                            const response: Response = await Routing.matchUri(input.method, input.uri);
+                            const response: Response = await Registry.get(Routing).matchUri(input.method, input.uri);
 
                             await request.send(response.getAsJson());
                         } else if (event instanceof Uint8Array) {
