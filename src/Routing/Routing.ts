@@ -1,8 +1,13 @@
-import { Route } from './Route.ts';
-import { Controller } from '../Controllers/Interfaces/Controller.ts';
+import { Controller } from '../Controller/Controller.ts';
+import { Middleware } from '../Middleware/Middleware.ts';
+import { Registry } from '../Registry/Registry.ts';
 import { Response } from '../Response/Response.ts';
+import { Route as RouteItem } from './Route.ts';
+import { RouteCollection } from './RouteCollection.ts';
+import { RouteMethod } from './RouteMethod.ts';
+import { RouteMiddleware, Order as MiddlewareOrder } from './RouteMiddleware.ts';
 
-enum Method {
+export enum Method {
     GET = 'GET',
     POST = 'POST',
     PUT = 'PUT',
@@ -10,127 +15,182 @@ enum Method {
     DELETE = 'DELETE',
 }
 
-enum RouteArgument {
-    ':id' = '(\\w+)',
+export function Route(uri: string) {
+    return function (target: any) {
+        Registry.get(Routing).routes.compile({
+            name: target.name,
+            route: new RouteItem(Method.GET, uri),
+            controller: target,
+        });
+    };
 }
 
-export function Controller(uri: string) {
-    return function (constructor: Function) {
-        Routing.addController(constructor.name, uri);
+export function Before(middleware: Middleware | any) {
+    return function (target: Controller, method: string, descriptor: PropertyDescriptor) {
+        Registry.get(Routing).routes.add({
+            name: target.constructor.name,
+            method: new RouteMethod(method, descriptor),
+            middleware: new RouteMiddleware(middleware.name, middleware, MiddlewareOrder.Before),
+        });
+    };
+}
+
+export function After(middleware: Middleware | any) {
+    return function (target: any, method: string, descriptor: PropertyDescriptor) {
+        Registry.get(Routing).routes.add({
+            name: target.constructor.name,
+            method: new RouteMethod(method, descriptor),
+            middleware: new RouteMiddleware(middleware.name, middleware, MiddlewareOrder.After),
+        });
     };
 }
 
 export function Any(uri: string) {
-    return function (target: any, key: string, descriptor: PropertyDescriptor) {
-        Routing.addUri(Method.GET, uri, target, descriptor);
-        Routing.addUri(Method.POST, uri, target, descriptor);
-        Routing.addUri(Method.PUT, uri, target, descriptor);
-        Routing.addUri(Method.PATCH, uri, target, descriptor);
-        Routing.addUri(Method.DELETE, uri, target, descriptor);
+    return function (target: Controller, method: string, descriptor: PropertyDescriptor) {
+        Registry.get(Routing).routes.add({
+            name: target.constructor.name,
+            route: new RouteItem(Method.GET, uri),
+            method: new RouteMethod(method, descriptor),
+        });
+
+        Registry.get(Routing).routes.add({
+            name: target.constructor.name,
+            route: new RouteItem(Method.POST, uri),
+            method: new RouteMethod(method, descriptor),
+        });
+
+        Registry.get(Routing).routes.add({
+            name: target.constructor.name,
+            route: new RouteItem(Method.PUT, uri),
+            method: new RouteMethod(method, descriptor),
+        });
+
+        Registry.get(Routing).routes.add({
+            name: target.constructor.name,
+            route: new RouteItem(Method.PATCH, uri),
+            method: new RouteMethod(method, descriptor),
+        });
+
+        Registry.get(Routing).routes.add({
+            name: target.constructor.name,
+            route: new RouteItem(Method.DELETE, uri),
+            method: new RouteMethod(method, descriptor),
+        });
     };
 }
 
 export function Get(uri: string) {
-    return function (target: Controller, key: string, descriptor: PropertyDescriptor) {
-        Routing.addUri(Method.GET, uri, target, descriptor);
+    return function (target: Controller, method: string, descriptor: PropertyDescriptor) {
+        Registry.get(Routing).routes.add({
+            name: target.constructor.name,
+            route: new RouteItem(Method.GET, uri),
+            method: new RouteMethod(method, descriptor),
+        });
     };
 }
 
 export function Post(uri: string) {
-    return function (target: Controller, key: string, descriptor: PropertyDescriptor) {
-        Routing.addUri(Method.POST, uri, target, descriptor);
+    return function (target: Controller, method: string, descriptor: PropertyDescriptor) {
+        Registry.get(Routing).routes.add({
+            name: target.constructor.name,
+            route: new RouteItem(Method.POST, uri),
+            method: new RouteMethod(method, descriptor),
+        });
     };
 }
 
 export function Put(uri: string) {
-    return function (target: Controller, key: string, descriptor: PropertyDescriptor) {
-        Routing.addUri(Method.PUT, uri, target, descriptor);
+    return function (target: Controller, method: string, descriptor: PropertyDescriptor) {
+        Registry.get(Routing).routes.add({
+            name: target.constructor.name,
+            route: new RouteItem(Method.PUT, uri),
+            method: new RouteMethod(method, descriptor),
+        });
     };
 }
 
 export function Patch(uri: string) {
-    return function (target: Controller, key: string, descriptor: PropertyDescriptor) {
-        Routing.addUri(Method.PATCH, uri, target, descriptor);
+    return function (target: Controller, method: string, descriptor: PropertyDescriptor) {
+        Registry.get(Routing).routes.add({
+            name: target.constructor.name,
+            route: new RouteItem(Method.PATCH, uri),
+            method: new RouteMethod(method, descriptor),
+        });
     };
 }
 
 export function Delete(uri: string) {
-    return function (target: Controller, key: string, descriptor: PropertyDescriptor) {
-        Routing.addUri(Method.DELETE, uri, target, descriptor);
+    return function (target: Controller, method: string, descriptor: PropertyDescriptor) {
+        Registry.get(Routing).routes.add({
+            name: target.constructor.name,
+            route: new RouteItem(Method.DELETE, uri),
+            method: new RouteMethod(method, descriptor),
+        });
     };
 }
 
 export class Routing {
-    protected static controllers: { [controller: string]: { [requestMethod: string]: { [uri: string]: Route } } } = {};
+    public routes: RouteCollection;
+    protected matchedRoute: any;
 
-    protected static routes: { [requestMethod: string]: { [uri: string]: Route } } = {
-        GET: {},
-        POST: {},
-        PUT: {},
-        PATCH: {},
-        DELETE: {},
-    };
-
-    protected static matchedRoute: any;
-
-    public static addController(controller: string, prefixUri: string) {
-        for (const [requestMethod, uris] of Object.entries(this.controllers[controller])) {
-            for (let [uri, route] of Object.entries(uris)) {
-                uri = prefixUri + uri;
-                uri = uri.replace(/\/$/, '');
-                uri = `^${uri}\$`;
-
-                for (const [argument, regex] of Object.entries(RouteArgument)) {
-                    uri = uri.replace(argument, regex);
-                }
-
-                this.routes[requestMethod][uri] = route;
-            }
-        }
+    constructor() {
+        this.routes = new RouteCollection();
     }
 
-    public static addUri(requestMethod: Method, uri: string, controller: any, method: PropertyDescriptor) {
-        const controllerName: string = controller.constructor.name;
-
-        if (!this.controllers[controllerName]) {
-            this.controllers[controllerName] = {};
-        }
-
-        if (!this.controllers[controllerName][requestMethod]) {
-            this.controllers[controllerName][requestMethod] = {};
-        }
-
-        this.controllers[controllerName][requestMethod][uri] = new Route(controller, method);
-    }
-
-    public controllers() {
-        return this.controllers;
-    }
-
-    public routes() {
-        return this.routes;
-    }
-
-    public static async matchUri(requestMethod: string, uri: string) {
+    public async matchUri(requestMethod: string, uri: string): Promise<Response> {
         let response: Response = new Response({
             message: 'Route not found',
             status: 404,
         });
 
-        for (let route in this.routes[requestMethod]) {
+        for (let route in this.routes.routes[requestMethod]) {
             const params = uri.match(new RegExp(route));
 
             if (params) {
-                this.matchedRoute = this.routes[requestMethod][route];
+                this.matchedRoute = this.routes.routes[requestMethod][route];
 
                 params.shift();
 
-                response = await this.matchedRoute.method.value.apply(this.matchedRoute.controller, params);
+                const controller = new this.matchedRoute.controller();
+
+                if (this.matchedRoute.middlewares.before) {
+                    const middlewareResponse = await this.before(controller);
+
+                    if (middlewareResponse) {
+                        return middlewareResponse;
+                    }
+                }
+
+                response = await controller[this.matchedRoute.method](params);
+
+                if (this.matchedRoute.middlewares.after) {
+                    const middlewareResponse = await this.after(controller);
+
+                    if (middlewareResponse) {
+                        return middlewareResponse;
+                    }
+                }
 
                 break;
             }
         }
 
         return response;
+    }
+
+    private async before(controller: any): Promise<void | Response> {
+        if (this.matchedRoute.middlewares.before) {
+            for (const middleware of this.matchedRoute.middlewares.before) {
+                return await new middleware.callback(controller).execute();
+            }
+        }
+    }
+
+    private async after(controller: any): Promise<void | Response> {
+        if (this.matchedRoute.middlewares.after) {
+            for (const middleware of this.matchedRoute.middlewares.after) {
+                return await new middleware.callback(controller).execute();
+            }
+        }
     }
 }
