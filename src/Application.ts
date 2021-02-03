@@ -26,7 +26,11 @@ export class Application {
     }
 
     public async serve(options: { [key: string]: any } = {}) {
-        const env = Registry.get(Env).get('Server');
+        let env: any = {};
+
+        if (Registry.get(Env)) {
+            env = Registry.get(Env).get('Server');
+        }
 
         const host = options.host || env.host || 'localhost';
         const port = options.port || env.port || 80;
