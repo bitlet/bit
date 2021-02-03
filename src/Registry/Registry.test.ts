@@ -18,7 +18,7 @@ class World {
 }
 
 Deno.test({
-    name: 'new Registry with multiple register()',
+    name: 'new Registry with multiple register() calls',
     async fn() {
         new Registry().register(new Hello('hello')).register(new World('world'));
 
@@ -30,9 +30,9 @@ Deno.test({
 });
 
 Deno.test({
-    name: 'new Registry with multiple registerMany()',
+    name: 'new Registry with multiple instances inside register',
     async fn() {
-        new Registry().registerMany([new Hello('hello')]).registerMany([new World('world')]);
+        new Registry().register(new Hello('hello'), new World('world'));
 
         assertEquals(Registry.get(Hello).hello, 'hello');
         assertEquals(Registry.get(World).world, 'world');

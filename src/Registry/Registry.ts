@@ -1,31 +1,33 @@
 export class Registry {
-    public static instance: Registry | null;
-    public static instances: any = {};
+    private static _instance: Registry | null;
+    private static instances: any = {};
 
     constructor() {
-        if (Registry.instance) {
+        if (Registry._instance) {
             throw new Error('Registry is already initiated');
         }
 
-        Registry.instance = this;
+        Registry._instance = this;
     }
 
-    public registerMany(instances: Array<any>): this {
+    public register(...instances: Array<any>): this {
         for (const instance of instances) {
-            this.register(instance);
+            const name = instance.constructor.name;
+
+            if (!Registry.instances[name]) {
+                Registry.instances[name] = instance;
+            }
         }
 
         return this;
     }
 
-    public register(instance: any): this {
-        const name = instance.constructor.name;
-
-        if (!Registry.instances[name]) {
-            Registry.instances[name] = instance;
+    public static instance(): Registry {
+        if (!this._instance) {
+            return new Registry();
         }
 
-        return this;
+        return this._instance;
     }
 
     public static get(instance: any): any {
@@ -33,7 +35,7 @@ export class Registry {
     }
 
     public static clear(): void {
-        this.instance = null;
+        this._instance = null;
         this.instances = {};
     }
 }
