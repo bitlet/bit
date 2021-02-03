@@ -45,7 +45,6 @@ export class Application {
     }
 
     private async http(request: ServerRequest) {
-        console.log(Registry.get(Routing).routes);
         const response: Response = await Registry.get(Routing).matchUri(request.method, request.url);
 
         if (response.isJson()) {
