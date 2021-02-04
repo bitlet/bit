@@ -144,10 +144,10 @@ export class Routing {
         });
 
         if (this.collection.match(requestMethod, uri)) {
-            const matchedRoute = this.collection.matchedRoute;
-            const controller = new matchedRoute.controller();
+            this.matchedRoute = this.collection.matchedRoute;
+            const controller = new this.matchedRoute.controller();
 
-            if (matchedRoute.middlewares.before) {
+            if (this.matchedRoute.middlewares.before) {
                 const middlewareResponse = await this.before(controller);
 
                 if (middlewareResponse) {
@@ -155,9 +155,9 @@ export class Routing {
                 }
             }
 
-            response = await controller[matchedRoute.method](this.collection.params);
+            response = await controller[this.matchedRoute.method](this.collection.params);
 
-            if (matchedRoute.middlewares.after) {
+            if (this.matchedRoute.middlewares.after) {
                 const middlewareResponse = await this.after(controller);
 
                 if (middlewareResponse) {
