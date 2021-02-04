@@ -17,7 +17,7 @@ export enum Method {
 
 export function Route(uri: string) {
     return function (target: any) {
-        Registry.get(Routing).routes.compile({
+        Registry.get(Routing).collection.compile({
             name: target.name,
             route: new RouteItem(Method.GET, uri),
             controller: target,
@@ -27,7 +27,7 @@ export function Route(uri: string) {
 
 export function Before(middleware: Middleware | any) {
     return function (target: Controller, method: string, descriptor: PropertyDescriptor) {
-        Registry.get(Routing).routes.add({
+        Registry.get(Routing).collection.add({
             name: target.constructor.name,
             method: new RouteMethod(method, descriptor),
             middleware: new RouteMiddleware(middleware.name, middleware, MiddlewareOrder.Before),
@@ -37,7 +37,7 @@ export function Before(middleware: Middleware | any) {
 
 export function After(middleware: Middleware | any) {
     return function (target: any, method: string, descriptor: PropertyDescriptor) {
-        Registry.get(Routing).routes.add({
+        Registry.get(Routing).collection.add({
             name: target.constructor.name,
             method: new RouteMethod(method, descriptor),
             middleware: new RouteMiddleware(middleware.name, middleware, MiddlewareOrder.After),
@@ -47,31 +47,31 @@ export function After(middleware: Middleware | any) {
 
 export function Any(uri: string) {
     return function (target: Controller, method: string, descriptor: PropertyDescriptor) {
-        Registry.get(Routing).routes.add({
+        Registry.get(Routing).collection.add({
             name: target.constructor.name,
             route: new RouteItem(Method.GET, uri),
             method: new RouteMethod(method, descriptor),
         });
 
-        Registry.get(Routing).routes.add({
+        Registry.get(Routing).collection.add({
             name: target.constructor.name,
             route: new RouteItem(Method.POST, uri),
             method: new RouteMethod(method, descriptor),
         });
 
-        Registry.get(Routing).routes.add({
+        Registry.get(Routing).collection.add({
             name: target.constructor.name,
             route: new RouteItem(Method.PUT, uri),
             method: new RouteMethod(method, descriptor),
         });
 
-        Registry.get(Routing).routes.add({
+        Registry.get(Routing).collection.add({
             name: target.constructor.name,
             route: new RouteItem(Method.PATCH, uri),
             method: new RouteMethod(method, descriptor),
         });
 
-        Registry.get(Routing).routes.add({
+        Registry.get(Routing).collection.add({
             name: target.constructor.name,
             route: new RouteItem(Method.DELETE, uri),
             method: new RouteMethod(method, descriptor),
@@ -81,7 +81,7 @@ export function Any(uri: string) {
 
 export function Get(uri: string) {
     return function (target: Controller, method: string, descriptor: PropertyDescriptor) {
-        Registry.get(Routing).routes.add({
+        Registry.get(Routing).collection.add({
             name: target.constructor.name,
             route: new RouteItem(Method.GET, uri),
             method: new RouteMethod(method, descriptor),
@@ -91,7 +91,7 @@ export function Get(uri: string) {
 
 export function Post(uri: string) {
     return function (target: Controller, method: string, descriptor: PropertyDescriptor) {
-        Registry.get(Routing).routes.add({
+        Registry.get(Routing).collection.add({
             name: target.constructor.name,
             route: new RouteItem(Method.POST, uri),
             method: new RouteMethod(method, descriptor),
@@ -101,7 +101,7 @@ export function Post(uri: string) {
 
 export function Put(uri: string) {
     return function (target: Controller, method: string, descriptor: PropertyDescriptor) {
-        Registry.get(Routing).routes.add({
+        Registry.get(Routing).collection.add({
             name: target.constructor.name,
             route: new RouteItem(Method.PUT, uri),
             method: new RouteMethod(method, descriptor),
@@ -111,7 +111,7 @@ export function Put(uri: string) {
 
 export function Patch(uri: string) {
     return function (target: Controller, method: string, descriptor: PropertyDescriptor) {
-        Registry.get(Routing).routes.add({
+        Registry.get(Routing).collection.add({
             name: target.constructor.name,
             route: new RouteItem(Method.PATCH, uri),
             method: new RouteMethod(method, descriptor),
@@ -121,7 +121,7 @@ export function Patch(uri: string) {
 
 export function Delete(uri: string) {
     return function (target: Controller, method: string, descriptor: PropertyDescriptor) {
-        Registry.get(Routing).routes.add({
+        Registry.get(Routing).collection.add({
             name: target.constructor.name,
             route: new RouteItem(Method.DELETE, uri),
             method: new RouteMethod(method, descriptor),
