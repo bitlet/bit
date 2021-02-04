@@ -130,48 +130,39 @@ export function Delete(uri: string) {
 }
 
 export class Routing {
-    public routes: RouteCollection;
+    public collection: RouteCollection;
     protected matchedRoute: any;
 
     constructor() {
-        this.routes = new RouteCollection();
+        this.collection = new RouteCollection();
     }
 
-    public async matchUri(requestMethod: string, uri: string): Promise<Response> {
+    public async matchUri(requestMethod: Method, uri: string): Promise<Response> {
         let response: Response = new Response({
             message: 'Route not found',
             status: 404,
         });
 
-        for (let route in this.routes.routes[requestMethod]) {
-            const params = uri.match(new RegExp(route));
+        if (this.collection.match(requestMethod, uri)) {
+            const matchedRoute = this.collection.matchedRoute;
+            const controller = new matchedRoute.controller();
 
-            if (params) {
-                this.matchedRoute = this.routes.routes[requestMethod][route];
+            if (matchedRoute.middlewares.before) {
+                const middlewareResponse = await this.before(controller);
 
-                params.shift();
-
-                const controller = new this.matchedRoute.controller();
-
-                if (this.matchedRoute.middlewares.before) {
-                    const middlewareResponse = await this.before(controller);
-
-                    if (middlewareResponse) {
-                        return middlewareResponse;
-                    }
+                if (middlewareResponse) {
+                    return middlewareResponse;
                 }
+            }
 
-                response = await controller[this.matchedRoute.method](params);
+            response = await controller[matchedRoute.method](this.collection.params);
 
-                if (this.matchedRoute.middlewares.after) {
-                    const middlewareResponse = await this.after(controller);
+            if (matchedRoute.middlewares.after) {
+                const middlewareResponse = await this.after(controller);
 
-                    if (middlewareResponse) {
-                        return middlewareResponse;
-                    }
+                if (middlewareResponse) {
+                    return middlewareResponse;
                 }
-
-                break;
             }
         }
 

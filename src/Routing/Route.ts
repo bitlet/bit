@@ -14,10 +14,17 @@ export class Route {
         this.uri = uri;
     }
 
-    public compile(prefix: string = '') {
-        this.compiled = prefix + this.uri;
+    public prefix(prefix: string = ''): this {
+        this.uri = prefix + this.uri;
 
-        this.compiled = this.compiled.replace(/\/$/, '');
+        return this;
+    }
+
+    public compile(): this {
+        this.compiled = this.uri;
+
+        this.compiled = this.prependLeadingSlash(this.compiled);
+        this.compiled = this.trimTrailingSlash(this.compiled);
         this.compiled = `^${this.compiled}\$`;
 
         for (const [argument, regex] of Object.entries(RouteArgument)) {
@@ -25,5 +32,21 @@ export class Route {
         }
 
         return this;
+    }
+
+    private prependLeadingSlash(uri: string): string {
+        if (!uri.startsWith('/')) {
+            uri = '/' + uri;
+        }
+
+        return uri;
+    }
+
+    private trimTrailingSlash(uri: string): string {
+        if (uri.endsWith('/')) {
+            uri = uri.slice(0, -1);
+        }
+
+        return uri;
     }
 }

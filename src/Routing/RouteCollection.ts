@@ -1,10 +1,12 @@
+import { Route } from './Route.ts';
 import { RouteMethod } from './RouteMethod.ts';
 import { RouteMiddleware } from './RouteMiddleware.ts';
-import { Route } from './Route.ts';
 
 export class RouteCollection {
     protected pre: { [controller: string]: { [method: string]: any } } = {};
     public routes: any = {};
+    public matchedRoute: any;
+    public params: any;
 
     public add({
         name,
@@ -18,7 +20,7 @@ export class RouteCollection {
         route?: Route;
         controller?: any;
         middleware?: RouteMiddleware;
-    }) {
+    }): this {
         let tmp = this.pre;
 
         if (!tmp[name]) {
@@ -54,16 +56,18 @@ export class RouteCollection {
 
             tmp.middlewares[middleware.order].push(middleware);
         }
+
+        return this;
     }
 
-    public compile({ name, route, controller }: { name: string; route: Route; controller: any }) {
+    public compile({ name, route, controller }: { name: string; route: Route; controller: any }): void {
         if (this.pre[name]) {
             for (let [key, value] of Object.entries(this.pre[name])) {
                 if (!this.routes[value.route.method]) {
                     this.routes[value.route.method] = {};
                 }
 
-                const compiledRoute = value.route.compile(route.uri);
+                const compiledRoute = value.route.prefix(route.uri).compile();
 
                 if (!compiledRoute.compiled) {
                     throw new Error('Route was not compiled');
@@ -80,5 +84,22 @@ export class RouteCollection {
                 };
             }
         }
+    }
+
+    public match(method: string, uri: string) {
+        for (let route in this.routes[method]) {
+            const params = uri.match(new RegExp(route));
+
+            if (params) {
+                this.params = params;
+                this.matchedRoute = this.routes[method][route];
+
+                this.params.shift();
+
+                return true;
+            }
+        }
+
+        return false;
     }
 }
