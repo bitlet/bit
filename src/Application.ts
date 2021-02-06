@@ -32,7 +32,7 @@ export class Application {
             env = Registry.get(Env).get('Server');
         }
 
-        const host = options.host || env.host || 'localhost';
+        const host = options.host || env.host || '0.0.0.0';
         const port = options.port || env.port || 80;
 
         const server = serve({ hostname: host, port });
