@@ -170,18 +170,14 @@ export class Routing {
     }
 
     private async before(controller: any): Promise<void | Response> {
-        if (this.matchedRoute.middlewares.before) {
-            for (const middleware of this.matchedRoute.middlewares.before) {
-                return await new middleware.callback(controller).execute();
-            }
+        for (const middleware of this.matchedRoute.middlewares.before) {
+            return await new middleware.callback(controller).execute();
         }
     }
 
     private async after(controller: any): Promise<void | Response> {
-        if (this.matchedRoute.middlewares.after) {
-            for (const middleware of this.matchedRoute.middlewares.after) {
-                return await new middleware.callback(controller).execute();
-            }
+        for (const middleware of this.matchedRoute.middlewares.after) {
+            return await new middleware.callback(controller).execute();
         }
     }
 }
