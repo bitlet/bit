@@ -1,12 +1,14 @@
 export enum Format {
+    Html = 'text/html',
     Json = 'application/json',
+    Plain = 'text/plain',
 }
 
 export class Response {
-    message: string;
-    status: number;
-    body: any = {};
-    format: string;
+    public message: string;
+    public status: number;
+    public body: any = {};
+    public format: string;
 
     constructor({
         message = '',
