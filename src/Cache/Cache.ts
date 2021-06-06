@@ -3,7 +3,7 @@ import { Redis } from './Drivers/Redis.ts';
 
 export class Cache {
     protected driver!: Interface.Driver;
-    protected connection!: any;
+    protected connection!: Interface.Connection;
 
     public parseDriver(driver: string): this {
         switch (driver) {

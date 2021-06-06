@@ -3,7 +3,7 @@ import { Mysql } from './Drivers/Mysql.ts';
 
 export class Database {
     protected driver!: Interface.Driver;
-    protected connection!: any;
+    protected connection!: Interface.Connection;
 
     public parseDriver(driver: string): this {
         switch (driver) {
@@ -31,7 +31,7 @@ export class Database {
         await this.driver.connect(connection);
     }
 
-    public async query(query: string, binds: Array<any>) {
+    public async query(query: string, binds: unknown[]) {
         if (!this.driver) {
             console.log('Waring: Missing database driver');
 

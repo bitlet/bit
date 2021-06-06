@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 export enum Order {
     Before = 'before',
     After = 'after',

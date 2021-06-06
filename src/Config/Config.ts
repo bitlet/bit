@@ -1,25 +1,34 @@
 export class Config {
-    protected collection: { [key: string]: any } = {};
+    /**
+     * Example:
+     *
+     * {
+     *   Database: {
+     *     host: "localhost",
+     *     user: "root",
+     *     pass: "secret"
+     *   },
+     *   data: [1, 2, 3]
+     * }
+     */
+    protected collection: { [key: string]: { [key: string]: unknown } | unknown[] } = {};
 
-    public add(key: string, value: { [key: string]: any }): this {
-        this.collection[key] = { ...this.collection[key], ...value };
+    public add(key: string, value: { [key: string]: unknown }): this {
+        this.collection[key] = { ...this.collection[key], ...(value as Record<string, unknown>) };
 
         return this;
     }
 
-    public addMany(configs: { [key: string]: any }): this {
+    public addMany(configs: { [key: string]: unknown }): this {
         for (const [key, value] of Object.entries(configs)) {
-            this.add(key, value);
+            this.add(key, value as Record<string, unknown>);
         }
 
         return this;
     }
 
-    public get(key: string = ''): any {
-        if (key) {
-            return this.collection[key];
-        }
-
+    // deno-lint-ignore no-explicit-any
+    public get(): any {
         return this.collection;
     }
 }

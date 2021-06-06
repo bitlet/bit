@@ -7,7 +7,7 @@ export enum Format {
 export class Response {
     public message: string;
     public status: number;
-    public body: any = {};
+    public body: string | unknown | unknown[] = {};
     public format: string;
 
     constructor({
@@ -18,7 +18,7 @@ export class Response {
     }: {
         message?: string;
         status?: number;
-        body?: any;
+        body?: string | unknown | unknown[];
         format?: string;
     }) {
         this.message = message;
@@ -37,5 +37,9 @@ export class Response {
             status: this.status,
             data: this.body,
         });
+    }
+
+    public getBodyAsString() {
+        return String(this.body);
     }
 }

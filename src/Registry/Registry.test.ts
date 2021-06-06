@@ -2,7 +2,7 @@ import { assertEquals } from '../../deps.test.ts';
 import { Registry } from './Registry.ts';
 
 class Hello {
-    hello: string = '';
+    hello = '';
 
     constructor(hello: string) {
         this.hello = hello;
@@ -10,7 +10,7 @@ class Hello {
 }
 
 class World {
-    world: string = '';
+    world = '';
 
     constructor(world: string) {
         this.world = world;
@@ -19,7 +19,7 @@ class World {
 
 Deno.test({
     name: 'new Registry with multiple register() calls',
-    async fn() {
+    fn() {
         new Registry().register(new Hello('hello')).register(new World('world'));
 
         assertEquals(Registry.get(Hello).hello, 'hello');
@@ -31,7 +31,7 @@ Deno.test({
 
 Deno.test({
     name: 'new Registry with multiple instances inside register',
-    async fn() {
+    fn() {
         new Registry().register(new Hello('hello'), new World('world'));
 
         assertEquals(Registry.get(Hello).hello, 'hello');

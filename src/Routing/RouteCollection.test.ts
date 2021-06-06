@@ -21,17 +21,17 @@ collection.compile({
 
 Deno.test({
     name: 'new RouteCollection()',
-    async fn() {
+    fn() {
         assertEquals(
             JSON.stringify(collection.routes),
-            '{"GET":{"^/hello/world$":{"route":{"method":"GET","uri":"hello/world","compiled":"^/hello/world$"},"controller":{},"method":"index","middlewares":{"before":[{"name":"SomeMiddleware","order":"before"}]}}}}',
+            '{"GET":{"^/hello/world$":{"route":{"method":"GET","uri":"hello/world","compiled":"^/hello/world$"},"controller":{},"method":"index","middlewares":{"before":[{"order":"before","name":"SomeMiddleware"}]}}}}',
         );
     },
 });
 
 Deno.test({
     name: 'new RouteCollection() testing match',
-    async fn() {
+    fn() {
         const match = collection.match(Method.GET, '/hello/world');
 
         assertEquals(match, true);

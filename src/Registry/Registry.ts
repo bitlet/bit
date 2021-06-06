@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 export class Registry {
     private static _instance: Registry | null;
     private static instances: any = {};

@@ -14,7 +14,7 @@ export class Route {
         this.uri = uri;
     }
 
-    public prefix(prefix: string = ''): this {
+    public prefix(prefix = ''): this {
         this.uri = prefix + this.uri;
 
         return this;

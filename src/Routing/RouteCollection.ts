@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 import { Route } from './Route.ts';
 import { RouteMethod } from './RouteMethod.ts';
 import { RouteMiddleware } from './RouteMiddleware.ts';
@@ -62,7 +64,7 @@ export class RouteCollection {
 
     public compile({ name, route, controller }: { name: string; route: Route; controller: any }): void {
         if (this.pre[name]) {
-            for (let [key, value] of Object.entries(this.pre[name])) {
+            for (const [key, value] of Object.entries(this.pre[name])) {
                 if (!this.routes[value.route.method]) {
                     this.routes[value.route.method] = {};
                 }
@@ -87,7 +89,7 @@ export class RouteCollection {
     }
 
     public match(method: string, uri: string) {
-        for (let route in this.routes[method]) {
+        for (const route in this.routes[method]) {
             const params = uri.match(new RegExp(route));
 
             if (params) {

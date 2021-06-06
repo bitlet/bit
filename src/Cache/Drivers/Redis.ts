@@ -1,8 +1,8 @@
-import { RedisConnect } from '../../../deps.ts';
+import { RedisConnect, RedisClient } from '../../../deps.ts';
 import { Connection, Driver } from '../Interfaces/mod.ts';
 
 export class Redis implements Driver {
-    protected connection!: any;
+    protected connection!: RedisClient;
 
     public async connect(connection: Connection): Promise<boolean> {
         const { host, port } = connection;

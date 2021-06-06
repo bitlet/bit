@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 export class RouteMethod {
     public name: string;
     public callback: any;

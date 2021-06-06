@@ -3,4 +3,5 @@ export interface Connection {
     port: number;
     prefix: string;
     debug: boolean;
+    isConnected: boolean;
 }

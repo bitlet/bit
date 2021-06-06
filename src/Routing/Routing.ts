@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 import { Controller } from '../Controller/Controller.ts';
 import { Middleware } from '../Middleware/Middleware.ts';
 import { Registry } from '../Registry/Registry.ts';
@@ -137,13 +139,13 @@ export class Routing {
         this.collection = new RouteCollection();
     }
 
-    public async matchUri(requestMethod: Method, uri: string): Promise<Response> {
+    public async matchUri(requestMethod: Method, uri: URL): Promise<Response> {
         let response: Response = new Response({
             message: 'Route not found',
             status: 404,
         });
 
-        if (this.collection.match(requestMethod, uri)) {
+        if (this.collection.match(requestMethod, uri.pathname)) {
             this.matchedRoute = this.collection.matchedRoute;
             const controller = new this.matchedRoute.controller();
 

@@ -4,7 +4,7 @@ import { assertEquals } from '../../deps.test.ts';
 
 Deno.test({
     name: 'Route with basic compilation',
-    async fn() {
+    fn() {
         let route = null;
 
         route = new Route(Method.GET, '/');
@@ -20,7 +20,7 @@ Deno.test({
 
 Deno.test({
     name: 'Route with compilation and trailing slash',
-    async fn() {
+    fn() {
         const route = new Route(Method.GET, '/hello/:id/');
         assertEquals(route.compile().compiled, '^/hello/(\\w+)$');
     },
@@ -28,7 +28,7 @@ Deno.test({
 
 Deno.test({
     name: 'Route with compilation without leading slash',
-    async fn() {
+    fn() {
         const route = new Route(Method.GET, 'hello/:id/');
         assertEquals(route.compile().compiled, '^/hello/(\\w+)$');
     },
@@ -36,7 +36,7 @@ Deno.test({
 
 Deno.test({
     name: 'Route with compilation and prefix',
-    async fn() {
+    fn() {
         const route = new Route(Method.GET, '/hello/:id/');
         assertEquals(route.prefix('world').compile().compiled, '^/world/hello/(\\w+)$');
     },

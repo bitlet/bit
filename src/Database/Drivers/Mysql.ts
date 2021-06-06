@@ -21,14 +21,14 @@ export class Mysql implements Driver {
         // https://github.com/denodrivers/mysql/issues/45
         try {
             await this.query('SHOW DATABASES');
-        } catch (error) {
+        } catch (_error) {
             return false;
         }
 
         return true;
     }
 
-    public async query(query: string, binds: Array<any> = []) {
+    public async query(query: string, binds: unknown[] = []) {
         try {
             return await this.connection.query(query, binds);
         } catch (error) {

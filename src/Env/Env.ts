@@ -1,15 +1,12 @@
 export class Env {
-    protected collection: any;
+    protected collection: { [key: string]: unknown } = {};
 
-    constructor(source: any) {
-        this.collection = source;
+    constructor(collection: { [key: string]: unknown }) {
+        this.collection = collection;
     }
 
-    public get(key: string = '') {
-        if (key) {
-            return this.collection[key];
-        }
-
+    // deno-lint-ignore no-explicit-any
+    public get(): any {
         return this.collection;
     }
 }

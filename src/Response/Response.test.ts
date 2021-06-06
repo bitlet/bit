@@ -3,7 +3,7 @@ import { Response } from './Response.ts';
 
 Deno.test({
     name: 'new Response',
-    async fn() {
+    fn() {
         const response = new Response({
             message: 'Hello world',
             status: 201,
@@ -22,7 +22,7 @@ Deno.test({
 
 Deno.test({
     name: 'response is JSON by default',
-    async fn() {
+    fn() {
         const response = new Response({});
 
         assert(response.isJson());
@@ -31,7 +31,7 @@ Deno.test({
 
 Deno.test({
     name: 'response as JSON',
-    async fn() {
+    fn() {
         const response = new Response({
             message: 'Hello world',
             status: 201,

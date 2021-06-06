@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 import { Controller } from '../Controller/Controller.ts';
 import { Response } from '../Response/Response.ts';
 
