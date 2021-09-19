@@ -38,8 +38,8 @@ export class Application {
             env = Registry.get(Env).get().Server;
         }
 
-        const host = options?.host || env.host || '0.0.0.0';
-        const port = options?.port || Number(env.port) || 80;
+        const host = options?.host || '0.0.0.0';
+        const port = options?.port || 80;
 
         try {
             const server = Deno.listen({ hostname: host, port: port });
@@ -56,17 +56,17 @@ export class Application {
         } catch (e) {
             console.log(e);
         }
-
-        console.log(`HTTP/WS server is running on ${host}:${port}`);
     }
 
     private async server(connection: Deno.Conn) {
         const httpConnection = Deno.serveHttp(connection);
 
         for await (const event of httpConnection) {
-            let body: Body = {};
+            const body: Body = {};
 
-            const response: BitResponse = await Registry.get(Routing).matchUri(
+            const routing = Registry.get(Routing);
+
+            const response: BitResponse = await routing.matchUri(
                 new BitRequest({
                     method: event.request.method,
                     url: new URL(event.request.url),
