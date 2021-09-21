@@ -2,9 +2,10 @@ import { Controller } from './Controller/Controller.ts';
 import { Env } from './Env/Env.ts';
 import { Registry } from './Registry/Registry.ts';
 import { Response as BitResponse } from './Response/Response.ts';
+import { Request as BitRequest, Body } from './Request/Request.ts';
 import { Routing } from './Routing/Routing.ts';
-// import { Webserver, WebSocket } from '../deps.ts';
-// import { serve, ServerRequest } from '../deps.ts';
+import { Webserver, WebSocket } from '../deps.ts';
+import { serve, ServerRequest } from '../deps.ts';
 
 new Registry().register(new Routing());
 
@@ -40,10 +41,20 @@ export class Application {
         const host = options?.host || env.host || '0.0.0.0';
         const port = options?.port || Number(env.port) || 80;
 
-        const server = Deno.listen({ hostname: host, port: port });
+        try {
+            const server = Deno.listen({ hostname: host, port: port });
 
-        for await (const connection of server) {
-            this.server(connection);
+            for await (const connection of server) {
+                this.server(connection);
+            }
+
+            // const server = serve({ hostname: host, port });
+
+            // for await (const request of server) {
+            //     this.ws(request);
+            // }
+        } catch (e) {
+            console.log(e);
         }
 
         console.log(`HTTP/WS server is running on ${host}:${port}`);
@@ -53,12 +64,18 @@ export class Application {
         const httpConnection = Deno.serveHttp(connection);
 
         for await (const event of httpConnection) {
+            let body: Body = {};
+
             const response: BitResponse = await Registry.get(Routing).matchUri(
-                event.request.method,
-                new URL(event.request.url),
+                new BitRequest({
+                    method: event.request.method,
+                    url: new URL(event.request.url),
+                    headers: event.request.headers,
+                    body: body,
+                }),
             );
 
-            const headers = new Headers({
+            const responseHeaders = new Headers({
                 server: 'Bitlet',
                 'content-type': response.format,
             });
@@ -67,55 +84,62 @@ export class Application {
                 await event.respondWith(
                     new Response(response.getAsJson(), {
                         status: response.status,
-                        headers: headers,
+                        headers: responseHeaders,
                     }),
                 );
             } else {
                 await event.respondWith(
                     new Response(response.getBodyAsString(), {
                         status: response.status,
-                        headers: headers,
+                        headers: responseHeaders,
                     }),
                 );
             }
         }
     }
 
-    // private async ws(request: ServerRequest) {
-    //     const { conn, r: bufReader, w: bufWriter, headers } = request;
+    private async ws(request: ServerRequest) {
+        const { conn, r: bufReader, w: bufWriter, headers } = request;
 
-    //     await Webserver.acceptWebSocket({ conn, bufReader, bufWriter, headers })
-    //         .then(async (request: WebSocket) => {
-    //             try {
-    //                 for await (const event of request) {
-    //                     if (typeof event === 'string') {
-    //                         const input = JSON.parse(event);
+        await Webserver.acceptWebSocket({ conn, bufReader, bufWriter, headers })
+            .then(async (request: WebSocket) => {
+                try {
+                    for await (const event of request) {
+                        if (typeof event === 'string') {
+                            const input = JSON.parse(event);
 
-    //                         const response: BitResponse = await Registry.get(Routing).matchUri(input.method, input.uri);
+                            const response: BitResponse = await Registry.get(Routing).matchUri(
+                                new BitRequest({
+                                    method: input.method,
+                                    url: new URL('https://127.0.0.1' + input.uri),
+                                    headers: new Headers(input.header),
+                                    body: input.data ?? {},
+                                }),
+                            );
 
-    //                         await request.send(response.getAsJson());
-    //                     } else if (event instanceof Uint8Array) {
-    //                         console.log('ws:Binary', event);
-    //                     } else if (Webserver.isWebSocketPingEvent(event)) {
-    //                         const [, body] = event;
-    //                         console.log('ws:Ping', body);
-    //                     } else if (Webserver.isWebSocketCloseEvent(event)) {
-    //                         const { code, reason } = event;
-    //                         console.log('ws:Close', code, reason);
-    //                     }
-    //                 }
-    //             } catch (error) {
-    //                 console.error(`Failed to receive frame: ${error}`);
+                            await request.send(response.getAsJson());
+                        } else if (event instanceof Uint8Array) {
+                            console.log('ws:Binary', event);
+                        } else if (Webserver.isWebSocketPingEvent(event)) {
+                            const [, body] = event;
+                            console.log('ws:Ping', body);
+                        } else if (Webserver.isWebSocketCloseEvent(event)) {
+                            const { code, reason } = event;
+                            console.log('ws:Close', code, reason);
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Failed to receive frame: ${error}`);
 
-    //                 if (!request.isClosed) {
-    //                     await request.close(1000).catch(console.error);
-    //                 }
-    //             }
-    //         })
-    //         .catch(async (error: string) => {
-    //             console.error(`Failed to accept websocket: ${error}`);
+                    if (!request.isClosed) {
+                        await request.close(1000).catch(console.error);
+                    }
+                }
+            })
+            .catch(async (error: string) => {
+                console.error(`Failed to accept websocket: ${error}`);
 
-    //             await request.respond({ status: 400 });
-    //         });
-    // }
+                await request.respond({ status: 400 });
+            });
+    }
 }

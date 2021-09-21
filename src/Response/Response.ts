@@ -4,6 +4,13 @@ export enum Format {
     Plain = 'text/plain',
 }
 
+export interface ResponseInterface {
+    message: string;
+    status: number;
+    body: string | unknown | unknown[];
+    format: string;
+}
+
 export class Response {
     public message: string;
     public status: number;

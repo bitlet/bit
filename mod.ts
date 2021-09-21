@@ -7,5 +7,6 @@ export * from './src/Database/mod.ts';
 export * from './src/Env/Env.ts';
 export * from './src/Middleware/Middleware.ts';
 export * from './src/Registry/Registry.ts';
+export * from './src/Request/Request.ts';
 export * from './src/Response/Response.ts';
 export * from './src/Routing/Routing.ts';

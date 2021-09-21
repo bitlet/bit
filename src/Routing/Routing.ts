@@ -3,6 +3,7 @@
 import { Controller } from '../Controller/Controller.ts';
 import { Middleware } from '../Middleware/Middleware.ts';
 import { Registry } from '../Registry/Registry.ts';
+import { Request } from '../Request/Request.ts';
 import { Response } from '../Response/Response.ts';
 import { Route as RouteItem } from './Route.ts';
 import { RouteCollection } from './RouteCollection.ts';
@@ -139,13 +140,13 @@ export class Routing {
         this.collection = new RouteCollection();
     }
 
-    public async matchUri(requestMethod: Method, uri: URL): Promise<Response> {
+    public async matchUri(request: Request): Promise<Response> {
         let response: Response = new Response({
             message: 'Route not found',
             status: 404,
         });
 
-        if (this.collection.match(requestMethod, uri.pathname)) {
+        if (this.collection.match(request.method, request.url.pathname)) {
             this.matchedRoute = this.collection.matchedRoute;
             const controller = new this.matchedRoute.controller();
 
