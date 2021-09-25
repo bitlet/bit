@@ -10,9 +10,7 @@ export class Cli extends Application {
         return this;
     }
 
-    async serve(): Promise<void> {
+    cli() {
         console.log(this._args);
-
-        await Promise.resolve();
     }
 }
