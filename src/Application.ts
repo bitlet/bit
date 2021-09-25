@@ -1,11 +1,8 @@
 import { Controller } from './Controller/Controller.ts';
-import { Env } from './Env/Env.ts';
 import { Registry } from './Registry/Registry.ts';
 import { Response as BitResponse } from './Response/Response.ts';
 import { Request as BitRequest, Body } from './Request/Request.ts';
 import { Routing } from './Routing/Routing.ts';
-import { Webserver, WebSocket } from '../deps.ts';
-import { serve, ServerRequest } from '../deps.ts';
 
 new Registry().register(new Routing());
 
@@ -31,13 +28,7 @@ export class Application {
         return await Promise.resolve(this);
     }
 
-    public async serve(options?: ServeOptions): Promise<void> {
-        let env: { [key: string]: string } = {};
-
-        if (Registry.get(Env)) {
-            env = Registry.get(Env).get().Server;
-        }
-
+    public async listen(options?: ServeOptions): Promise<void> {
         const host = options?.host || '0.0.0.0';
         const port = options?.port || 80;
 
@@ -45,101 +36,115 @@ export class Application {
             const server = Deno.listen({ hostname: host, port: port });
 
             for await (const connection of server) {
-                this.server(connection);
+                this.handle(connection);
             }
-
-            // const server = serve({ hostname: host, port });
-
-            // for await (const request of server) {
-            //     this.ws(request);
-            // }
         } catch (e) {
             console.log(e);
         }
     }
 
-    private async server(connection: Deno.Conn) {
+    private async handle(connection: Deno.Conn) {
         const httpConnection = Deno.serveHttp(connection);
 
         for await (const event of httpConnection) {
-            const body: Body = {};
+            if (event.request.headers.get('upgrade') === 'websocket') {
+                const { socket, response } = Deno.upgradeWebSocket(event.request);
 
-            const routing = Registry.get(Routing);
+                socket.onopen = () => console.log('Socket opened');
 
-            const response: BitResponse = await routing.matchUri(
-                new BitRequest({
-                    method: event.request.method,
-                    url: new URL(event.request.url),
-                    headers: event.request.headers,
-                    body: body,
-                }),
+                socket.onmessage = async (e) => {
+                    const data = JSON.parse(e.data);
+                    const url = 'https://127.0.0.1' + data.url;
+
+                    const response = await this.serve(data.method, url, data.headers, data.body);
+
+                    socket.send(response.getAsJson());
+                };
+
+                socket.onerror = (e) => console.log('Socket error:', e);
+
+                socket.onclose = () => console.log('Socket closed');
+
+                await event.respondWith(response);
+
+                continue;
+            }
+
+            let body: Body = {};
+
+            // @todo Move to Request
+            if (event.request.method !== 'GET') {
+                const contentType = event.request.headers.get('content-type') ?? '';
+
+                if (contentType.startsWith('application/json')) {
+                    body = await event.request.json();
+                } else if (
+                    contentType.startsWith('application/x-www-form-urlencoded') ||
+                    contentType.startsWith('multipart/form-data')
+                ) {
+                    const formData = await event.request.formData();
+
+                    for (const [key, value] of formData.entries()) {
+                        if (value instanceof File) {
+                            console.log(value.name);
+                            console.log(value.size);
+                            console.log(value.stream());
+                        }
+
+                        body[key] = value;
+                    }
+                } else {
+                    return await event.respondWith(
+                        new Response('Something went wrong', {
+                            status: 400,
+                            headers: new Headers(),
+                        }),
+                    );
+                }
+            }
+
+            const response = await this.serve(
+                event.request.method,
+                event.request.url,
+                event.request.headers,
+                body,
             );
-
-            const responseHeaders = new Headers({
-                server: 'Bitlet',
-                'content-type': response.format,
-            });
 
             if (response.isJson()) {
                 await event.respondWith(
                     new Response(response.getAsJson(), {
                         status: response.status,
-                        headers: responseHeaders,
+                        headers: response.headers,
                     }),
                 );
             } else {
                 await event.respondWith(
                     new Response(response.getBodyAsString(), {
                         status: response.status,
-                        headers: responseHeaders,
+                        headers: response.headers,
                     }),
                 );
             }
         }
     }
 
-    private async ws(request: ServerRequest) {
-        const { conn, r: bufReader, w: bufWriter, headers } = request;
+    private async serve(method: string, url: string, headers: Headers, body: Body) {
+        const routing = Registry.get(Routing);
 
-        await Webserver.acceptWebSocket({ conn, bufReader, bufWriter, headers })
-            .then(async (request: WebSocket) => {
-                try {
-                    for await (const event of request) {
-                        if (typeof event === 'string') {
-                            const input = JSON.parse(event);
+        const response: BitResponse = await routing.matchUri(
+            new BitRequest({
+                method: method,
+                url: new URL(url),
+                headers: headers,
+                body: body,
+            }),
+        );
 
-                            const response: BitResponse = await Registry.get(Routing).matchUri(
-                                new BitRequest({
-                                    method: input.method,
-                                    url: new URL('https://127.0.0.1' + input.uri),
-                                    headers: new Headers(input.header),
-                                    body: input.data ?? {},
-                                }),
-                            );
+        response.headers = new Headers({
+            server: 'Bitlet',
+            'content-type': response.format,
+        });
 
-                            await request.send(response.getAsJson());
-                        } else if (event instanceof Uint8Array) {
-                            console.log('ws:Binary', event);
-                        } else if (Webserver.isWebSocketPingEvent(event)) {
-                            const [, body] = event;
-                            console.log('ws:Ping', body);
-                        } else if (Webserver.isWebSocketCloseEvent(event)) {
-                            const { code, reason } = event;
-                            console.log('ws:Close', code, reason);
-                        }
-                    }
-                } catch (error) {
-                    console.error(`Failed to receive frame: ${error}`);
-
-                    if (!request.isClosed) {
-                        await request.close(1000).catch(console.error);
-                    }
-                }
-            })
-            .catch(async (error: string) => {
-                console.error(`Failed to accept websocket: ${error}`);
-
-                await request.respond({ status: 400 });
-            });
+        return response;
     }
 }

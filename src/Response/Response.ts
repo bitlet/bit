@@ -9,6 +9,7 @@ export interface ResponseInterface {
     status: number;
     body: string | unknown | unknown[];
     format: string;
+    headers: Headers;
 }
 
 export class Response {
@@ -16,6 +17,7 @@ export class Response {
     public status: number;
     public body: string | unknown | unknown[] = {};
     public format: string;
+    public headers?: Headers;
 
     constructor({
         message = '',
