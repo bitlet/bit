@@ -1,4 +1,5 @@
 export * from './src/Application.ts';
+export * from './src/Auth/Auth.ts';
 export * from './src/Cache/Cache.ts';
 export * from './src/Cli.ts';
 export * from './src/Config/Config.ts';

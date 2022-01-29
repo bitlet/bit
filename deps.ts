@@ -4,3 +4,4 @@ export type { WebSocket } from 'https://deno.land/std@0.97.0/ws/mod.ts';
 export { Client as MysqlClient } from 'https://deno.land/x/mysql/mod.ts';
 export { connect as RedisConnect } from 'https://deno.land/x/redis/mod.ts';
 export type { Redis as RedisClient } from 'https://deno.land/x/redis/mod.ts';
+export * as Base64 from 'https://deno.land/std@0.111.0/encoding/base64.ts';
